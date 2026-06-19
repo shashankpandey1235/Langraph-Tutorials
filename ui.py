@@ -16,7 +16,7 @@ if st.button("Launch Agent Studio Loop"):
         with st.spinner("Streaming task to FastAPI Backend... Please watch your server logs."):
             try:
                 # Send the data over the network to your server script
-                response = requests.post(BACKEND_URL, json={"prompt": user_prompt})
+                response = requests.post(f"{BACKEND_URL}/generate-game", json={"prompt": user_prompt})
                 
                 if response.status_code == 200:
                     game_html = response.json()["html_code"]
