@@ -1,8 +1,10 @@
 langgraph
 langchain-core
-langchain-google-genai
+mistralai
 python-dotenv
 fastapi
 uvicorn
 streamlit
 requests
+mistral-common>=1.0.0
+mistral-inference>=1.0.0

@@ -6,8 +6,7 @@ from langchain_core.messages import AnyMessage , HumanMessage , AIMessage
 from langgraph.graph import StateGraph , START , END
 from langgraph.graph.message import add_messages
 from langgraph.types import Command
-from langchain_google_genai import ChatGoogleGenerativeAI
-
+from mistralai import Mistral
 load_dotenv()
 
 class StudioState(TypedDict):
@@ -17,7 +16,7 @@ class StudioState(TypedDict):
     bug_report: str 
     iteration_count:int
 
-model = ChatGoogleGenerativeAI(model="gemini-2.5-flash",temperature=0.2)
+model = Mistral(model="mistral-small-latest",temperature=0.2)
 
 # Isolated Production worker node
 def game_designer_node(state : StudioState):
