@@ -7,7 +7,7 @@ st.title("👾 Multi-Agent Retro Game Studio")
 st.write("Type a game concept below to send to your FastAPI LangGraph backend server!")
 
 # Define backend destination URL
-BACKEND_URL = "http://127.0.0"
+BACKEND_URL = "https://langraph-tutorials.onrender.com"
 
 user_prompt = st.text_input("What kind of game do you want to build?", placeholder="Build a retro Space Invaders game...")
 
