@@ -31,7 +31,8 @@ def game_designer_node(state : StudioState):
         "winning/losing states , and gameplay scoring rules .Do not write code yet."
     )
 
-    messages = [{"role":"system" , "content": system_prompt}] + state["messages"]
+    # FIX: Convert dictionary style format to a proper LangChain system tuple
+    messages = [("system", system_prompt)] + state["messages"]
     response = model.invoke(messages)
 
     return {
@@ -46,7 +47,6 @@ def developer_node(state: StudioState):
     """
     print(f"[Developer]: Writing application source code (Cycle {state['iteration_count'] + 1 })....")
 
-
     system_prompt = (
         "You are an elite Lead Software Engineer. Write a completely self-contained, standalone "
         "HTML file containing inline <style> CSS and <script> JavaScript for the requested game.\n\n"
@@ -55,12 +55,16 @@ def developer_node(state: StudioState):
         "2. Ensure all event listeners, logic loops, rendering contexts, and asset colors are explicitly defined.\n"
         "3. Ensure the game is visually polished, responsive, and immediate to play."
     )
-    # If the QA agent found a bug previously , inject that feedback right into the prompt 
+    
     context = state["messages"]
+    
     if state.get("bug_report"):
         feedback = f"CRITICAL BUG REPORT FROM PREVIOUS TRY: \n{state['bug_report']}\n Please re-write the code completely fixing the error"
         context = context + [HumanMessage(content=feedback)]
-    messages = [("system",system_prompt)] + context
+    else:
+        context = context + [HumanMessage(content="Please build the web source code now based on the designer's specifications above.")]
+
+    messages = [("system", system_prompt)] + context
     response = model.invoke(messages)
 
     return {
@@ -83,7 +87,7 @@ def qa_enginner_node(state:StudioState):
             update={"bug_report":"Error: Your output was not encapsulated in a ```html code block."},
             goto="developer_node"
         )
-    # 2 . Syntax check : use LLM intelligence to read code logic floaws or missing tags
+    # 2 . Syntax check : use LLM intelligence to read code logic flaws or missing tags
     system_prompt = (
         "You are a Senior QA Automation Engineer. Inspect the provided code string carefully.\n"
         "Verify: Are there open tags? Is the JavaScript event loop complete? Are variables defined correctly?\n"
@@ -91,7 +95,9 @@ def qa_enginner_node(state:StudioState):
         "If the script is pristine and ready to run, reply with exactly: [PASS]."
     )
 
-    verification = model.invoke(["system",system_prompt,
+    # FIX: Changed invalid array structure ["system", system_prompt] to proper LangChain tuple sequence
+    verification = model.invoke([
+       ("system", system_prompt),
        HumanMessage(content=f"Review this source code:\n\n{code}")
     ])
     
@@ -124,6 +130,11 @@ app = studio_graph.compile()
 
 # 4 . Runtime & File export Extractor
 if __name__ == "__main__":
+    # Safety Check: Create a dummy file if mini_game.html doesn't exist yet to prevent FileNotFoundError
+    if not os.path.exists("mini_game.html"):
+        with open("mini_game.html", "w", encoding="utf-8") as f:
+            f.write("<!-- Empty Init File -->")
+
     with open("mini_game.html" , "r" , encoding="utf-8") as f :
         broken_code = f.read()
 
@@ -146,7 +157,6 @@ if __name__ == "__main__":
     final_state = app.invoke(inputs , config={"recursion_limit":30})
 
     # Extract and overwrite with the patched HTML file
-    import re 
     raw_response = final_state["generated_code"]
     code_match = re.search(r"```html\s(.*?)\s*```",raw_response, re.DOTALL)
 
@@ -154,10 +164,3 @@ if __name__ == "__main__":
         with open("mini_game.html","w",encoding="utf-8") as f :
             f.write(code_match.group(1))
         print("\n Success : The fixed version has been compiled into 'mini_game.html'")
-
-
-
-
-
-
-    
